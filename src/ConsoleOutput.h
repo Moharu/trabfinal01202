@@ -1,0 +1,2 @@
+void outputStartup();
+void renderScreen();

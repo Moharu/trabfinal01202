@@ -1,0 +1,3 @@
+int pollChar();
+
+void inputStartup();
