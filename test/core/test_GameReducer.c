@@ -34,3 +34,26 @@ void test_flap(void){
     TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.height, 5.1888);
     TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.velocity, 5.6666);
 }
+
+void test_upperCollision(void){
+    GameState initialState = sampleState();
+    initialState.height = 9.9800;
+    initialState.velocity = 0;
+    Action action;
+    action.type = ACTION_FLAP;
+    action.params[0] = 6;
+    GameState newState = gameReducer(initialState, action);
+    TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.height, 10);
+    TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.velocity, 0);
+}
+
+void test_lowerCollision(void){
+    GameState initialState = sampleState();
+    initialState.height = 0.1;
+    initialState.velocity = -5;
+    Action action;
+    action.type = ACTION_NONE;
+    GameState newState = gameReducer(initialState, action);
+    TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.height, 0);
+    TEST_ASSERT_FLOAT_WITHIN(0.0001, newState.velocity, 0);
+}
