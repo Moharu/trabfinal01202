@@ -4,32 +4,74 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 #include "ConsoleInput.h"
 #include "ConsoleOutput.h"
 #include "ScreenBuilder.h"
-
-#define FPS 30
+#include "GameReducer.h"
+#include "GameConstants.h"
 
 int main(){
     int shouldExit = 0;
     inputStartup();
-    outputStartup();
-    loadTemplate();
+    // outputStartup();
+    // loadTemplate();
+    GameState state;
+    state.maxHeight = MAX_HEIGHT;
+    state.gravity = GRAVITY_ACCEL;
+    state.velocity = 0;
+    state.elapsedTime = 1.0/TIME_CONSTANT;
+    // state.height = state.maxHeight / 2;
+    state.height = 18;
 
+    Action act;
+    act.type = ACTION_NONE;
     while(!shouldExit){
+        // render game
+        int pos = round((state.height/state.maxHeight)*90);
+        printf("\e[2J");
+        int i;
+        printf("h: %.2f, v: %.2f\n",state.height, state.velocity);
+        for(i=30; i>=0;i--){
+            int lal = pos/3;
+            if(i==lal){
+                char c;
+                switch(pos%3){
+                    case 0:
+                        c='.';
+                    break;
+                    case 1:
+                        c='-';
+                    break;
+                    case 2:
+                        c='\'';
+                    break;
+                }
+                printf("\t%c\n",c);
+            } else {
+                printf("\n");
+            }
+        }
+        printf("\n");
+
+        // update state
+        int flap = 0;
         int c = pollChar();
         if (c != -1) {
-            printf("Key: ");
-
+            flap = 1;
             // le todos os bytes disponiveis no buffer de entrada
             while (c != -1) {
-                printf("0x%2x ", c);
                 c = pollChar();
             }
-
-            printf("\n");
         }
-        usleep(1000/FPS);
+        if(flap){
+            act.type = ACTION_FLAP;
+            act.params[0] = FLAP_VELOCITY;
+        } else {
+            act.type = ACTION_NONE;
+        }
+        state = gameReducer(state, act);
+        usleep(1000000/TIME_CONSTANT);
     }
     return 0;
 }
