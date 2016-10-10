@@ -1,6 +1,13 @@
 #include "GameReducer.h"
 
+Physics physicsReducer(Physics, Action);
+
 GameState gameReducer(GameState lastState, Action action){
+    lastState.physics = physicsReducer(lastState.physics, action);
+    return lastState;
+}
+
+Physics physicsReducer(Physics lastState, Action action){
     float h = lastState.height,
         v = lastState.velocity,
         a = lastState.gravity,
@@ -23,5 +30,8 @@ GameState gameReducer(GameState lastState, Action action){
         lastState.velocity = 0;
         lastState.height = lastState.maxHeight;
     }
+
+    // Horizontal movement
+    lastState.hPosition += lastState.hVelocity*t;
     return lastState;
 }

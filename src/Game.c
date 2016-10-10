@@ -28,13 +28,14 @@ int main(){
     act.type = ACTION_NONE;
     while(!shouldExit){
         // render game
-        int pos = round((state.height/state.maxHeight)*90);
+        int pos = round((state.height/state.maxHeight)*60); 
         printf("\e[2J");
         int i;
         printf("h: %.2f, v: %.2f\n",state.height, state.velocity);
-        for(i=30; i>=0;i--){
-            int lal = pos/3;
-            if(i==lal){
+        printf("============================================================\n");
+        for(i=20; i>=0;i--){
+            int posModule = pos/3;
+            if(i==posModule){
                 char c;
                 switch(pos%3){
                     case 0:
@@ -52,8 +53,7 @@ int main(){
                 printf("\n");
             }
         }
-        printf("\n");
-
+        printf("============================================================\n");
         // update state
         int flap = 0;
         int c = pollChar();
