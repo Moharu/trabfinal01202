@@ -60,7 +60,7 @@ int main(){
                     screen[i][endRelativePosition] = '|';
                 }
             }
-            for(i=state.pipe.gap[1]; i >= 0; i--){
+            for(i=state.pipe.gap[1]-1; i >= 0; i--){
                 if(startRelativePosition > 0){
                     screen[i][startRelativePosition] = '|';
                 }
@@ -76,7 +76,7 @@ int main(){
             }
             for(i = startRelativePosition + 1; i < endRelativePosition; i++){
                 screen[(int)state.pipe.gap[0]][i] = '_';
-                screen[(int)state.pipe.gap[1]+1][i] = '_';
+                screen[(int)state.pipe.gap[1]][i] = '_';
             }
         }
 
@@ -122,6 +122,14 @@ int main(){
         // Pipe
         if(state.physics.hPosition - state.pipe.hPosition > 12){
             state.pipe.hPosition = round(state.physics.hPosition + 55);
+        }
+        // collision
+        // is in horizontal region
+        if((state.physics.hPosition >= state.pipe.hPosition) && (state.physics.hPosition <= (state.pipe.hPosition + state.pipe.hWidth))){
+            // is in vertical region
+            if(state.physics.height >= state.pipe.gap[0] || state.physics.height <= state.pipe.gap[1]){
+                shouldExit = 1;
+            }
         }
         state = gameReducer(state, act);
         usleep(1000000/TIME_CONSTANT);
