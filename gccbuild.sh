@@ -1,0 +1,2 @@
+gcc src/Actions.h src/ConsoleOutput.c src/GameConstants.h src/Hostile.h src/ConsoleInput.c src/ConsoleOutput.h src/GameReducer.c src/ScreenBuilder.c src/ConsoleInput.h src/Game.c src/GameReducer.h src/ScreenBuilder.h -lm -o test.out
+./test.out
