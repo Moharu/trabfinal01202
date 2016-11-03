@@ -4,6 +4,18 @@ Physics physicsReducer(Physics, Action);
 
 GameState gameReducer(GameState lastState, Action action){
     lastState.physics = physicsReducer(lastState.physics, action);
+    // Collision
+    // lower collision
+    if(lastState.physics.height <= 0){
+        lastState.gameEnded = 1;
+    }
+    // is in vertical pipe region
+    if(lastState.physics.height >= lastState.pipe.gap[0] || lastState.physics.height <= lastState.pipe.gap[1]){
+        // is in horizontal pipe region
+        if((lastState.physics.hPosition >= lastState.pipe.hPosition) && (lastState.physics.hPosition <= (lastState.pipe.hPosition + lastState.pipe.hWidth))){
+            lastState.gameEnded = 1;
+        }
+    }
     return lastState;
 }
 

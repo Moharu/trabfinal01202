@@ -13,6 +13,7 @@ typedef struct physics {
 
 // Game State structure
 typedef struct gamestate {
+	int gameEnded;
     Physics physics;
     Pipe pipe; // Description of all current pipes
 } GameState;

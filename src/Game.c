@@ -16,6 +16,7 @@ int main(){
 
     // Game state initialization
     GameState state;
+    state.gameEnded = 0;    
     state.physics.maxHeight = MAX_HEIGHT;
     state.physics.gravity = GRAVITY_ACCEL;
     state.physics.velocity = 0;
@@ -28,7 +29,7 @@ int main(){
     state.pipe.hPosition = -11;
     state.pipe.hWidth = PIPE_WIDTH;
     state.pipe.gap[0] = 14;
-    state.pipe.gap[1] = 8;
+    state.pipe.gap[1] = 10;
 
     Action act;
     act.type = ACTION_NONE;
@@ -36,8 +37,14 @@ int main(){
     while(!shouldExit){
         int i, j;
 
+        // Check if game is still running
+        if(state.gameEnded){  
+            shouldExit = 1;
+        }
+
         // User interface
         screen = buildScreenFromState(state);
+
         renderScreen(screen);
         printf("x: %.2f, p: %.2f\n", state.physics.hPosition, state.pipe.hPosition);
         printf("h: %.2f, v: %.2f\n",state.physics.height, state.physics.velocity);
@@ -62,18 +69,6 @@ int main(){
             state.pipe.hPosition = round(state.physics.hPosition + 55);
         }
 
-        // Collision
-        // is in horizontal region
-        if((state.physics.hPosition >= state.pipe.hPosition) && (state.physics.hPosition <= (state.pipe.hPosition + state.pipe.hWidth))){
-            // is in vertical region
-            if(state.physics.height >= state.pipe.gap[0] || state.physics.height <= state.pipe.gap[1]){
-                shouldExit = 1;
-            }
-        }
-        // lower collision
-        if(state.physics.height <= 0){
-            shouldExit = 1;
-        }
         state = gameReducer(state, act);
 
         // TIME_CONSTANT determines how many frames per second
