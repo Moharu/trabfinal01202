@@ -10,4 +10,3 @@
 #define PIPE_GAP 4
 #define MAX_PIPES 6 // minimum 3
 #define SPACE_BETWEEN_PIPES 25
-#define SCREEN_WIDTH 60

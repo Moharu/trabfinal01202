@@ -1,6 +1,7 @@
 #include "ScreenBuilder.h"
 #include "GameConstants.h"
 #include <math.h>
+#include <string.h>
 #include <stdio.h>
 
 Screen buildScreenFromState(GameState state) {
@@ -71,5 +72,15 @@ Screen buildScreenFromState(GameState state) {
     }
     screen.content[posModule][PIPE_WIDTH] = p;
 
+    return screen;
+}
+
+Screen putMessage(Screen screen, char message[]){
+    int l = strlen(message);
+    int offset = SCREEN_WIDTH/2 - l/2;
+    int x;
+    for(x = 0; x < l; x++){
+        screen.content[(int)(SCREEN_HEIGHT)/2][offset+x] = message[x];
+    }
     return screen;
 }
