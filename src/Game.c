@@ -3,6 +3,7 @@
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <math.h>
 #include "ConsoleInput.h"
@@ -10,13 +11,14 @@
 #include "ScreenBuilder.h"
 
 int main(){
-    int shouldExit = 0;
+    int shouldExit = 0, i, j;
     inputStartup();
     outputStartup();
+    srand(time(NULL));
 
     // Game state initialization
     GameState state;
-    state.gameEnded = 0;    
+    state.gameEnded = 0;
     state.physics.maxHeight = MAX_HEIGHT;
     state.physics.gravity = GRAVITY_ACCEL;
     state.physics.velocity = 0;
@@ -26,19 +28,20 @@ int main(){
     state.physics.hPosition = 0;
     state.physics.hVelocity = SCROLLING_SPEED;
     // Initializes the pipes array with no pipes
-    state.pipe.hPosition = -11;
-    state.pipe.hWidth = PIPE_WIDTH;
-    state.pipe.gap[0] = 14;
-    state.pipe.gap[1] = 10;
+    for(i = 0; i < MAX_PIPES; i++){
+        state.pipe[i].active = 1;
+        state.pipe[i].hPosition = MAX_WIDTH + SPACE_BETWEEN_PIPES * i;
+        state.pipe[i].hWidth = PIPE_WIDTH;
+        state.pipe[i].gap[0] = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
+        state.pipe[i].gap[1] = state.pipe[i].gap[0] - PIPE_GAP;
+    }
 
     Action act;
     act.type = ACTION_NONE;
     Screen screen;
     while(!shouldExit){
-        int i, j;
-
         // Check if game is still running
-        if(state.gameEnded){  
+        if(state.gameEnded){
             shouldExit = 1;
         }
 
@@ -46,7 +49,7 @@ int main(){
         screen = buildScreenFromState(state);
 
         renderScreen(screen);
-        printf("x: %.2f, p: %.2f\n", state.physics.hPosition, state.pipe.hPosition);
+        printf("x: %.2f", state.physics.hPosition);
         printf("h: %.2f, v: %.2f\n",state.physics.height, state.physics.velocity);
 
         // Action creator
@@ -63,10 +66,6 @@ int main(){
             act.params[0] = FLAP_VELOCITY;
         } else {
             act.type = ACTION_NONE;
-        }
-        // Pipe
-        if(state.physics.hPosition - state.pipe.hPosition > 12){
-            state.pipe.hPosition = round(state.physics.hPosition + 55);
         }
 
         state = gameReducer(state, act);

@@ -1,5 +1,7 @@
 #include "Actions.h"
 #include "Hostile.h"
+#include <stdlib.h>
+#include "GameConstants.h"
 
 typedef struct physics {
     float height; // current vertical position
@@ -15,8 +17,8 @@ typedef struct physics {
 typedef struct gamestate {
 	int gameEnded;
     Physics physics;
-    Pipe pipe; // Description of all current pipes
+    Pipe pipe[MAX_PIPES]; // Description of all current pipes
 } GameState;
 
 GameState gameReducer(GameState, Action);
-GameState pipeReducer(GameState, Pipe);
+GameState pipeReducer(GameState);
