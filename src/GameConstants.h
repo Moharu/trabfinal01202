@@ -10,3 +10,7 @@
 #define PIPE_GAP 4
 #define MAX_PIPES 6 // minimum 3
 #define SPACE_BETWEEN_PIPES 25
+
+// UI
+#define SCORE_OFFSET 3
+#define SCORE_MAXDIGITS 10

@@ -20,9 +20,13 @@ GameState gameReducer(GameState lastState, Action action){
                     lastState.gameEnded = 1;
                 }
             }
-            // has passed the pipe
-            if(lastState.physics.hPosition > lastState.pipe[i].hPosition + lastState.pipe[i].hWidth){
-                // lastState.pipe[i].active = 0;
+            // pipe wasnt scored
+            if(!lastState.pipe[i].scored){
+                // has passed the pipe
+                if(lastState.physics.hPosition > lastState.pipe[i].hPosition + lastState.pipe[i].hWidth){
+                    lastState.points += 1;
+                    lastState.pipe[i].scored = 1;
+                }
             }
 
             // pipe left the screen
@@ -41,6 +45,7 @@ GameState pipeReducer(GameState lastState){
         Pipe newPipe;
         newPipe = lastState.pipe[0];
         newPipe.active = 1;
+        newPipe.scored = 0;
         newPipe.gap[0] = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
         newPipe.gap[1] = newPipe.gap[0] - PIPE_GAP;
         newPipe.hPosition = lastState.pipe[MAX_PIPES-1].hPosition + SPACE_BETWEEN_PIPES;

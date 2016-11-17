@@ -20,6 +20,7 @@ int main(){
         // Game state initialization
         GameState state;
         state.gameEnded = 0;
+        state.points = 0;
         state.physics.maxHeight = MAX_HEIGHT;
         state.physics.gravity = GRAVITY_ACCEL;
         state.physics.velocity = 0;
@@ -30,6 +31,7 @@ int main(){
         // Initializes the pipes array with no pipes
         for(i = 0; i < MAX_PIPES; i++){
             state.pipe[i].active = 1;
+            state.pipe[i].scored = 0;
             state.pipe[i].hPosition = MAX_WIDTH + SPACE_BETWEEN_PIPES * i;
             state.pipe[i].hWidth = PIPE_WIDTH;
             state.pipe[i].gap[0] = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);

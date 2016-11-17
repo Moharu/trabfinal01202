@@ -15,6 +15,7 @@ typedef struct physics {
 
 // Game State structure
 typedef struct gamestate {
+    int points;
 	int gameEnded;
     Physics physics;
     Pipe pipe[MAX_PIPES]; // Description of all current pipes

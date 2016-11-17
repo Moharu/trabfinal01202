@@ -72,6 +72,17 @@ Screen buildScreenFromState(GameState state) {
     }
     screen.content[posModule][PIPE_WIDTH] = p;
 
+    // score
+    char score[SCORE_MAXDIGITS + 7];
+    sprintf(score, "Score: %d", state.points);
+    int scoreLen = strlen(score);
+    int scoreOffset = SCORE_OFFSET;
+
+    for(i = scoreLen - 1; i >= 0; i--){
+        screen.content[MAX_HEIGHT - 2][MAX_WIDTH - scoreOffset - 1] = score[i];
+        scoreOffset += 1;
+    }
+
     return screen;
 }
 
