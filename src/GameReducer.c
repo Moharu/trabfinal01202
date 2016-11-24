@@ -1,36 +1,50 @@
+/*
+    All the core game logic is defined as a reducer function:
+    It receives the previous gameState, and an action to be performed
+    It then returns the new gameState.
+*/
 #include "GameReducer.h"
 
 Physics physicsReducer(Physics, Action);
+GameState pipeReducer(GameState lastState);
 
+/*
+    The main game reducer, as detailed above, it receives
+    the previous gameState, parses which action is going
+    to be performed, does all necessary modifications, and
+    returns it as the new game state.
+*/
 GameState gameReducer(GameState lastState, Action action){
     lastState = pipeReducer(lastState);
     lastState.physics = physicsReducer(lastState.physics, action);
-    // Collision
-    // lower collision
+    // Collision checking
+    // lower collision (floor)
     if(lastState.physics.height <= 0){
         lastState.gameEnded = 1;
     }
     int i;
     for(i = 0; i < MAX_PIPES; i++){
-        // is in vertical pipe region
+        // player is in vertical pipe region
         if(lastState.pipe[i].active){
             if(lastState.physics.height >= lastState.pipe[i].gap[0] || lastState.physics.height <= lastState.pipe[i].gap[1]){
-                // is in horizontal pipe region
+                // player is in horizontal pipe region
                 if((lastState.physics.hPosition >= lastState.pipe[i].hPosition) && (lastState.physics.hPosition <= (lastState.pipe[i].hPosition + lastState.pipe[i].hWidth))){
+                    // player collided with a pipe
                     lastState.gameEnded = 1;
                 }
             }
-            // pipe wasnt scored
+            // pipe wasnt scored yet
             if(!lastState.pipe[i].scored){
-                // has passed the pipe
+                // player has passed the pipe
                 if(lastState.physics.hPosition > lastState.pipe[i].hPosition + lastState.pipe[i].hWidth){
                     lastState.points += 1;
                     lastState.pipe[i].scored = 1;
                 }
             }
 
-            // pipe left the screen
+            // pipe is not on the screen anymore
             if(lastState.physics.hPosition - PIPE_WIDTH > lastState.pipe[i].hPosition + lastState.pipe[i].hWidth){
+                // deactives it
                 lastState.pipe[i].active = 0;
             }
         }
@@ -38,6 +52,10 @@ GameState gameReducer(GameState lastState, Action action){
     return lastState;
 }
 
+/*
+    This specific reducer takes care of spawning new Pipes
+    and managing all necessary modifications to them.
+*/
 GameState pipeReducer(GameState lastState){
     int i;
     if(!lastState.pipe[0].active){
@@ -55,12 +73,17 @@ GameState pipeReducer(GameState lastState){
             lastState.pipe[i-1] = lastState.pipe[i];
         }
 
-        // put it at the end of the line
+        // puts it at the end of the line
         lastState.pipe[MAX_PIPES-1] = newPipe;
     }
     return lastState;
 }
 
+/*
+    The physics reducer is reponsible to apply the game's
+    physics to the current state, acording to the performed
+    actions.
+*/
 Physics physicsReducer(Physics lastState, Action action){
     float h = lastState.height,
         v = lastState.velocity,
@@ -72,11 +95,11 @@ Physics physicsReducer(Physics lastState, Action action){
             v = action.params[0];
         break;
     }
-    // h = h + vt + at^2/2
+    // h = h + vt + (at^2)/2
     lastState.height = h + (v*t) + ((a*t*t)/2);
     // v = v + at
     lastState.velocity = v + (a*t);
-    // Collision
+    // Collisions to the boundaries should reset the speed
     if(lastState.height <= 0){
         lastState.velocity = 0;
         lastState.height = 0;
@@ -86,6 +109,6 @@ Physics physicsReducer(Physics lastState, Action action){
     }
 
     // Horizontal movement
-    lastState.hPosition += lastState.hVelocity*t;
+    lastState.hPosition += lastState.hVelocity * t;
     return lastState;
 }

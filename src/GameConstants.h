@@ -1,3 +1,6 @@
+/*
+    Most of the gameplay related constants are defined in this file
+*/
 // Game Constants
 #define MAX_HEIGHT 20
 #define MAX_WIDTH 60
@@ -14,3 +17,7 @@
 // UI
 #define SCORE_OFFSET 3
 #define SCORE_MAXDIGITS 10
+
+// GAME MODES
+#define MODE_NORMAL 1
+#define MODE_EXPERT 2

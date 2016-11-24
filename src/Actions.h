@@ -1,4 +1,5 @@
-// Action types
+// This header defines the possible (inter)action types
+
 /*
     ACTION_NONE: No user interaction
 */

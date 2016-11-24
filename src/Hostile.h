@@ -1,3 +1,6 @@
+/*
+    Struct definition of all hostile entities in the game
+*/
 typedef struct pipe {
     int active;
     int scored;

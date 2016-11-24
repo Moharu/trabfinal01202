@@ -1,9 +1,17 @@
+/*
+    The ScreenBuilder is a translator from the
+    gameState to the Screen structure to be rendered
+*/
 #include "ScreenBuilder.h"
 #include "GameConstants.h"
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
 
+/*
+    Receives the current gameState, returning
+    the Screen structure with all the game information
+*/
 Screen buildScreenFromState(GameState state) {
     Screen screen;
     int i,j;
@@ -13,7 +21,7 @@ Screen buildScreenFromState(GameState state) {
             screen.content[i][j] = ' ';
         }
     }
-
+    // drawing the pipes
     for(i = 0; i < MAX_PIPES; i++){
         // position pipe
         if(state.pipe[i].active){
@@ -83,15 +91,5 @@ Screen buildScreenFromState(GameState state) {
         scoreOffset += 1;
     }
 
-    return screen;
-}
-
-Screen putMessage(Screen screen, char message[]){
-    int l = strlen(message);
-    int offset = SCREEN_WIDTH/2 - l/2;
-    int x;
-    for(x = 0; x < l; x++){
-        screen.content[(int)(SCREEN_HEIGHT)/2][offset+x] = message[x];
-    }
     return screen;
 }

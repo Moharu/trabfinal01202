@@ -1,3 +1,6 @@
+/*
+    State structure definitions and GameReducer function prototypes
+*/
 #include "Actions.h"
 #include "Hostile.h"
 #include <stdlib.h>
@@ -22,4 +25,3 @@ typedef struct gamestate {
 } GameState;
 
 GameState gameReducer(GameState, Action);
-GameState pipeReducer(GameState);
