@@ -21,3 +21,4 @@
 // GAME MODES
 #define MODE_NORMAL 1
 #define MODE_EXPERT 2
+#define MODE_EXIT 3

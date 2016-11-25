@@ -7,12 +7,6 @@
 #include <string.h>
 #include "ConsoleOutput.h"
 
-// printf console macros
-#define clearScreen() printf("\e[2J")
-#define resetTerminalState() printf("\ec")
-#define resetCursorPosition() printf("\e[H")
-#define hideCursor() printf("\e[?25l")
-
 /*
     Resets the terminal state
 */

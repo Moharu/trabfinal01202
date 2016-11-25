@@ -11,13 +11,18 @@
 #include "ConsoleInput.h"
 #include "GameConstants.h"
 #include "ScreenBuilder.h"
+#include <string.h>
+
+#define SCORES_FILE "scores.dat"
+#define waitNextFrame() usleep(1000000/TIME_CONSTANT)
 
 int menuScreen(Screen*);
-int normalGame(Screen*);
-int expertGame();
+void normalGame(Screen*);
+void expertGame();
+void highscores(int, int);
 
 int main(){
-    int gameMode, gameIsRunning = 1, shouldStop = 0;
+    int gameMode, gameIsRunning = 1;
     inputStartup();
     outputStartup();
     srand(time(NULL));
@@ -28,23 +33,15 @@ int main(){
         // the return value is the selected game mode
         gameMode = menuScreen(&screen);
 
-        if(gameMode == MODE_NORMAL){
-            normalGame(&screen);
+        switch(gameMode){
+            case MODE_NORMAL:
+                normalGame(&screen);
+            break;
+            case MODE_EXPERT:
+            case MODE_EXIT:
+                gameIsRunning = 0;
+            break;
         }
-
-        printMessage("You lose! Press anything to restart", 11, 16);
-        int shouldStart = 0;
-        while(!shouldStart){
-            int c = pollChar();
-            if(c != -1){
-                shouldStart = 1;
-                while(c != -1) {
-                    c = pollChar();
-                }
-            }
-        }
-        shouldStart = 0;
-        shouldStop = 0;
     }
     return 0;
 }
@@ -53,7 +50,7 @@ int main(){
     Returns the option selected by the user
  */
 int menuScreen(Screen *screen){
-    int i, selectedOption = 1, shouldStart = 0;
+    int i, selectedOption = MODE_NORMAL, shouldStart = 0;
     // menu screen default game state
     GameState state;
     state.points = 0;
@@ -73,34 +70,36 @@ int menuScreen(Screen *screen){
     renderScreen(*screen);
     while(!shouldStart){
         printMessage("Flappy bird!", 9, 25);
-        printMessage("Normal Game", 12, 26);
-        printMessage("Expert Game", 13, 26);
-        printMessage("*", 11 + selectedOption, 24);
-        printMessage(" ", 12 + (selectedOption % 2), 24);
+        printMessage("   Normal Game", 12, 23);
+        printMessage("   Expert Game", 13, 23);
+        printMessage("   Exit", 14, 23);
+        printMessage("->", 11 + selectedOption, 23);
         int pressedKey = getKeyPress();
         switch(pressedKey){
             case KEY_RETURN:
                 shouldStart = 1;
             break;
             case KEY_UP:
+                selectedOption -= 1;
+            break;
             case KEY_DOWN:
-                if(selectedOption == MODE_NORMAL){
-                    selectedOption = MODE_EXPERT;
-                } else {
-                    selectedOption = MODE_NORMAL;
-                }
+                selectedOption += 1;
             break;
         }
-        usleep(1000000/TIME_CONSTANT);
+        if(selectedOption < MODE_NORMAL){
+            selectedOption = MODE_EXIT;
+        } else if(selectedOption > MODE_EXIT){
+            selectedOption = MODE_NORMAL;
+        }
+        waitNextFrame();
     }
     return selectedOption;
 }
 
 /* Default normal game mode, receives the screen struct where the game
    will be rendered
-   Returns the player score after the game is ended.
 */
-int normalGame(Screen *screen){
+void normalGame(Screen *screen){
     int i, j, shouldStop = 0;
     // Game state initialization
     GameState state;
@@ -124,10 +123,17 @@ int normalGame(Screen *screen){
     }
 
     Action act;
-    act.type = ACTION_NONE;
     act.type = ACTION_FLAP;
     act.params[0] = FLAP_VELOCITY;
     state = gameReducer(state, act);
+    *screen = buildScreenFromState(state);
+    renderScreen(*screen);
+
+    // wait for input to start game
+    printMessage("Press Space to jump!", 11, 16);
+    while(getKeyPress() != KEY_SPACE){
+        waitNextFrame();
+    }
 
     while(!shouldStop){
         // Check if game is still running
@@ -140,15 +146,8 @@ int normalGame(Screen *screen){
         renderScreen(*screen);
 
         // Action creator
-        int flap = 0; // Should flap if any input is received
-        int c = pollChar();
-        if (c != -1) {
-            flap = 1;
-            while (c != -1) {
-                c = pollChar();
-            }
-        }
-        if(flap){
+        int pressedKey = getKeyPress();
+        if(pressedKey == KEY_SPACE){
             act.type = ACTION_FLAP;
             act.params[0] = FLAP_VELOCITY;
         } else {
@@ -158,15 +157,150 @@ int normalGame(Screen *screen){
         state = gameReducer(state, act);
 
         // TIME_CONSTANT determines how many frames per second
-        usleep(1000000/TIME_CONSTANT);
+        waitNextFrame();
     }
+    // after game
+    highscores(MODE_NORMAL, state.points);
 }
 
 
 /* Expert game mode, receives the screen struct where the game
    will be rendered
-   Returns the player score after the game is ended.
 */
-int expertGame(){
+void expertGame(){
 
 }
+
+/*
+    Prints out the highscores for the selected
+    game mode, also ask you to include a new one
+    if a highscore is beaten
+*/
+void highscores(int gameMode, int playerScore){
+    struct Score {
+        char name[4];
+        int points;
+    };
+    struct Leaderboard {
+        struct Score normal[3];
+        struct Score expert[3];
+    };
+
+    FILE *scoreFile;
+    struct Leaderboard leaderboard;
+    int i, error = 0;
+    scoreFile = fopen(SCORES_FILE, "rb");
+    if(scoreFile == NULL){
+        // If no leaderboard was previously found, creates a blank one
+        scoreFile = fopen(SCORES_FILE, "wb");
+        if(scoreFile != NULL){
+            for(i = 0; i < 3; i++){
+                strcpy(leaderboard.normal[i].name, "AAA");
+                leaderboard.normal[i].points = 0;
+                strcpy(leaderboard.expert[i].name, "AAA");
+                leaderboard.expert[i].points = 0;
+            }
+            if(fwrite(&leaderboard, sizeof(struct Leaderboard), 1, scoreFile) != 1){
+                error = 1;
+            }
+        } else {
+            error = 1;
+        }
+    } else {
+        if(fread(&leaderboard, sizeof(struct Leaderboard), 1, scoreFile) != 1){
+            error = 1;
+        }
+    }
+    fclose(scoreFile);
+    if(error){
+        printMessage("Error loading Leaderboard,", 11, 16);
+    } else {
+        if(gameMode == MODE_NORMAL){
+            int isHighscore = 0;
+            char *name;
+            if(playerScore > leaderboard.normal[0].points){
+                isHighscore = 1;
+                leaderboard.normal[2].points = leaderboard.normal[1].points;
+                leaderboard.normal[1].points = leaderboard.normal[0].points;
+                leaderboard.normal[0].points = playerScore;
+                strcpy(leaderboard.normal[0].name, "AAA");
+                name = leaderboard.normal[0].name;
+            } else if(playerScore > leaderboard.normal[1].points){
+                isHighscore = 1;
+                leaderboard.normal[2].points = leaderboard.normal[1].points;
+                leaderboard.normal[1].points = playerScore;
+                strcpy(leaderboard.normal[1].name, "AAA");
+                name = leaderboard.normal[1].name;
+            } else if(playerScore > leaderboard.normal[2].points){
+                isHighscore = 1;
+                leaderboard.normal[2].points = playerScore;
+                strcpy(leaderboard.normal[2].name, "AAA");
+                name = leaderboard.normal[2].name;
+            }
+            if(isHighscore){
+                clearScreen();
+                printMessage("Game Over!", 7, 27);
+                char displayString[15];
+                int insertingName = 1, currentPosition = 0;
+                sprintf(displayString, "Your score: %03d", playerScore);
+                printMessage(displayString, 11, 24);
+                while(insertingName){
+                    sprintf(displayString, "Enter your name: %s", name);
+                    printMessage("   ", 12, 39);
+                    printMessage("   ", 14, 39);
+                    printMessage("+", 12, 39 + currentPosition);
+                    printMessage("+", 14, 39 + currentPosition);
+                    printMessage(displayString, 13, 22);
+                    int pressedKey = getKeyPress();
+                    switch(pressedKey){
+                        case KEY_UP:
+                            name[currentPosition] -= 1;
+                        break;
+                        case KEY_DOWN:
+                            name[currentPosition] += 1;
+                        break;
+                        case KEY_RETURN:
+                            currentPosition += 1;
+                        break;
+                    }
+                    if(currentPosition >= 3){
+                        insertingName = 0;
+                    } else if(name[currentPosition] < 'A'){
+                        name[currentPosition] = 'Z';
+                    } else if(name[currentPosition] > 'Z'){
+                        name[currentPosition] = 'A';
+                    }
+                    waitNextFrame();
+                }
+                scoreFile = fopen(SCORES_FILE, "wb");
+                if(scoreFile == NULL){
+                    error = 1;
+                }
+                if(fwrite(&leaderboard, sizeof(struct Leaderboard), 1, scoreFile) != 1){
+                    error = 1;
+                }
+                fclose(scoreFile);
+            }
+        }
+        // clears the screen
+        clearScreen();
+        printMessage("Game Over!", 7, 27);
+        printMessage("Leaderboard", 9, 26);
+        for(i = 0; i < 3; i++){
+            char msg[15];
+            struct Score score;
+            if(gameMode == MODE_NORMAL){
+                score = leaderboard.normal[i];
+            } else if(gameMode == MODE_EXPERT){
+                score = leaderboard.expert[i];
+            }
+            sprintf(msg, "%d. %03d - %s", i + 1, score.points, score.name);
+            printMessage(msg, 11 + i, 25);
+        }
+    }
+    printMessage("Press enter to continue.", 15, 19);
+    while(getKeyPress() != KEY_RETURN){
+        waitNextFrame();
+    }
+    return;
+};
