@@ -197,11 +197,18 @@ void expertGame(Screen *screen){
     for(i = 0; i < MAX_HOSTILES; i++){
         state.hostile[i].active = 1;
         state.hostile[i].scored = 0;
-        state.hostile[i].type = TYPE_PIPE;
-        state.hostile[i].hPosition = MAX_WIDTH + SPACE_BETWEEN_HOSTILES * i;
-        state.hostile[i].pipe.hWidth = PIPE_WIDTH;
-        state.hostile[i].pipe.gap[0] = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
-        state.hostile[i].pipe.gap[1] = state.hostile[i].pipe.gap[0] - PIPE_GAP;
+        int hostileType = (rand() % 2)? TYPE_PIPE : TYPE_ENEMY;
+        state.hostile[i].type = hostileType;
+        state.hostile[i].hPosition = i == 0 ? MAX_WIDTH : (state.hostile[i-1].hPosition + (rand() % SPACE_BETWEEN_HOSTILES + SPACE_BETWEEN_HOSTILES));
+        if(hostileType == TYPE_PIPE){
+            state.hostile[i].pipe.hWidth = PIPE_WIDTH;
+            state.hostile[i].pipe.gap[0] = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
+            state.hostile[i].pipe.gap[1] = state.hostile[i].pipe.gap[0] - PIPE_GAP;
+        } else {
+            state.hostile[i].enemy.hWidth = PIPE_WIDTH;
+            state.hostile[i].enemy.height = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
+            state.hostile[i].enemy.velocity = 0;
+        }
     }
 
     Action act;
@@ -245,7 +252,7 @@ void expertGame(Screen *screen){
         waitNextFrame();
     }
     // after game
-    highscores(MODE_NORMAL, state.points);
+    highscores(MODE_EXPERT, state.points);
 }
 
 /*
@@ -292,9 +299,9 @@ void highscores(int gameMode, int playerScore){
     if(error){
         printMessage("Error loading Leaderboard,", 11, 16);
     } else {
+        int scorePosition = 0;
+        char *name;
         if(gameMode == MODE_NORMAL){
-            int scorePosition = 0;
-            char *name;
             if(playerScore > leaderboard.normal[0].points){
                 scorePosition = 1;
             } else if(playerScore > leaderboard.normal[1].points){
@@ -309,50 +316,68 @@ void highscores(int gameMode, int playerScore){
                 leaderboard.normal[(scorePosition - 1)].points = playerScore;
                 strcpy(leaderboard.normal[(scorePosition - 1)].name, "AAA");
                 name = leaderboard.normal[(scorePosition - 1)].name;
-                clearScreen();
-                printMessage("Game Over!", 7, 27);
-                printMessage("New Highscore!", 7, 25);
-                char displayString[15];
-                int insertingName = 1, currentPosition = 0;
-                sprintf(displayString, "Your score: %03d", playerScore);
-                printMessage(displayString, 11, 24);
-                while(insertingName){
-                    sprintf(displayString, "Enter your name: %s", name);
-                    printMessage("   ", 12, 39);
-                    printMessage("   ", 14, 39);
-                    printMessage("-", 12, 39 + currentPosition);
-                    printMessage("+", 14, 39 + currentPosition);
-                    printMessage(displayString, 13, 22);
-                    int pressedKey = getKeyPress();
-                    switch(pressedKey){
-                        case KEY_UP:
-                            name[currentPosition] -= 1;
-                        break;
-                        case KEY_DOWN:
-                            name[currentPosition] += 1;
-                        break;
-                        case KEY_RETURN:
-                            currentPosition += 1;
-                        break;
-                    }
-                    if(currentPosition >= 3){
-                        insertingName = 0;
-                    } else if(name[currentPosition] < 'A'){
-                        name[currentPosition] = 'Z';
-                    } else if(name[currentPosition] > 'Z'){
-                        name[currentPosition] = 'A';
-                    }
-                    waitNextFrame();
-                }
-                scoreFile = fopen(SCORES_FILE, "wb");
-                if(scoreFile == NULL){
-                    error = 1;
-                }
-                if(fwrite(&leaderboard, sizeof(struct Leaderboard), 1, scoreFile) != 1){
-                    error = 1;
-                }
-                fclose(scoreFile);
             }
+        } else {
+            if(playerScore > leaderboard.expert[0].points){
+                scorePosition = 1;
+            } else if(playerScore > leaderboard.expert[1].points){
+                scorePosition = 2;
+            } else if(playerScore > leaderboard.expert[2].points){
+                scorePosition = 3;
+            }
+            if(scorePosition){
+                for(i = 2; i >= scorePosition; i--){
+                    leaderboard.expert[i].points = leaderboard.expert[i-1].points;
+                }
+                leaderboard.expert[(scorePosition - 1)].points = playerScore;
+                strcpy(leaderboard.expert[(scorePosition - 1)].name, "AAA");
+                name = leaderboard.expert[(scorePosition - 1)].name;
+            }
+        }
+        if(scorePosition){
+            clearScreen();
+            printMessage("Game Over!", 7, 27);
+            printMessage("New Highscore!", 7, 25);
+            char displayString[15];
+            int insertingName = 1, currentPosition = 0;
+            sprintf(displayString, "Your score: %03d", playerScore);
+            printMessage(displayString, 11, 24);
+            while(insertingName){
+                sprintf(displayString, "Enter your name: %s", name);
+                printMessage("   ", 12, 39);
+                printMessage("   ", 14, 39);
+                printMessage("-", 12, 39 + currentPosition);
+                printMessage("+", 14, 39 + currentPosition);
+                printMessage(displayString, 13, 22);
+                int pressedKey = getKeyPress();
+                switch(pressedKey){
+                    case KEY_UP:
+                    name[currentPosition] -= 1;
+                    break;
+                    case KEY_DOWN:
+                    name[currentPosition] += 1;
+                    break;
+                    case KEY_RETURN:
+                    currentPosition += 1;
+                    break;
+                }
+                if(currentPosition >= 3){
+                    insertingName = 0;
+                } else if(name[currentPosition] < 'A'){
+                    name[currentPosition] = 'Z';
+                } else if(name[currentPosition] > 'Z'){
+                    name[currentPosition] = 'A';
+                }
+                waitNextFrame();
+            }
+            scoreFile = fopen(SCORES_FILE, "wb");
+            if(scoreFile == NULL){
+                error = 1;
+            }
+            if(fwrite(&leaderboard, sizeof(struct Leaderboard), 1, scoreFile) != 1){
+                error = 1;
+            }
+            fclose(scoreFile);
         }
         // clears the screen
         clearScreen();

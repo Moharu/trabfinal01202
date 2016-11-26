@@ -13,6 +13,7 @@ typedef struct pipe {
 typedef struct enemy {
     float height;
     float hWidth;
+    float velocity;
 } Enemy;
 
 typedef struct hostile {

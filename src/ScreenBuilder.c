@@ -24,9 +24,9 @@ Screen buildScreenFromState(GameState state) {
     // drawing the pipes
     for(i = 0; i < MAX_HOSTILES; i++){
         if(state.hostile[i].active){
+            float widthRatio = SCREEN_WIDTH / MAX_WIDTH;
+            int startRelativePosition = round((state.hostile[i].hPosition - state.physics.hPosition + PIPE_WIDTH) * widthRatio);
             if(state.hostile[i].type == TYPE_PIPE){
-                float widthRatio = SCREEN_WIDTH / MAX_WIDTH;
-                int startRelativePosition = round((state.hostile[i].hPosition - state.physics.hPosition + PIPE_WIDTH) * widthRatio);
                 int endRelativePosition = round((startRelativePosition + state.hostile[i].pipe.hWidth) * widthRatio);
                 if(startRelativePosition >= - PIPE_WIDTH && startRelativePosition < 60){
                     // Draw the upper pipe
@@ -57,6 +57,30 @@ Screen buildScreenFromState(GameState state) {
                     for(j = startRelativePosition + 1; j < endRelativePosition; j++){
                         screen.content[(int)state.hostile[i].pipe.gap[0]][j] = '_';
                         screen.content[(int)state.hostile[i].pipe.gap[1]][j] = '_';
+                    }
+                }
+            } else {
+                int endRelativePosition = round((startRelativePosition + state.hostile[i].enemy.hWidth) * widthRatio);
+                if(startRelativePosition >= - PIPE_WIDTH && startRelativePosition < 60){
+                    // Draw the enemy
+                    for(j = state.hostile[i].enemy.height - 1; j >= (state.hostile[i].enemy.height - ENEMY_HEIGHT); j--){
+                        if(startRelativePosition > 0){
+                            screen.content[j][startRelativePosition] = '/';
+                        }
+                        if(endRelativePosition < SCREEN_WIDTH){
+                            screen.content[j][endRelativePosition] = '\\';
+                        }
+                    }
+                    // Draw the enemies ends
+                    if(startRelativePosition < 0){
+                        startRelativePosition = -1;
+                    }
+                    if(endRelativePosition >= SCREEN_WIDTH){
+                        endRelativePosition = SCREEN_HEIGHT;
+                    }
+                    for(j = startRelativePosition + 1; j < endRelativePosition; j++){
+                        screen.content[(int)state.hostile[i].enemy.height - 1][j] = '/';
+                        screen.content[(int)state.hostile[i].enemy.height - ENEMY_HEIGHT][j] = '\\';
                     }
                 }
             }

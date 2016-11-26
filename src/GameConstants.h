@@ -16,7 +16,7 @@
 #define MAX_PROJECTILES 5
 #define PROJECTILE_SPEED 35
 #define ENEMY_WIDTH 5
-#define ENEMY_HEIGHT 5
+#define ENEMY_HEIGHT 3
 
 // UI
 #define SCORE_OFFSET 3

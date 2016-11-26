@@ -50,6 +50,28 @@ GameState gameReducer(GameState lastState, Action action){
                     // deactives it
                     lastState.hostile[i].active = 0;
                 }
+            } else {
+                if(lastState.physics.height < lastState.hostile[i].enemy.height && lastState.physics.height > (lastState.hostile[i].enemy.height - ENEMY_HEIGHT)){
+                    // player is in horizontal enemy region
+                    if((lastState.physics.hPosition >= lastState.hostile[i].hPosition) && (lastState.physics.hPosition <= (lastState.hostile[i].hPosition + lastState.hostile[i].enemy.hWidth))){
+                        // player collided with an enemy
+                        lastState.gameEnded = 1;
+                    }
+                }
+                // enemy wasnt scored yet
+                if(!lastState.hostile[i].scored){
+                    // player has passed the enemy
+                    if(lastState.physics.hPosition > lastState.hostile[i].hPosition + lastState.hostile[i].enemy.hWidth){
+                        lastState.points += 1;
+                        lastState.hostile[i].scored = 1;
+                    }
+                }
+
+                // pipe is not on the screen anymore
+                if(lastState.physics.hPosition - ENEMY_WIDTH > lastState.hostile[i].hPosition + lastState.hostile[i].enemy.hWidth){
+                    // deactives it
+                    lastState.hostile[i].active = 0;
+                }
             }
         }
     }
@@ -65,7 +87,7 @@ GameState hostileReducer(GameState lastState){
     if(!lastState.hostile[0].active){
         int nextEnemyType;
         if(lastState.spawnEnemies){
-
+            nextEnemyType = (rand() % 2)? TYPE_PIPE : TYPE_ENEMY;
         } else {
             nextEnemyType = TYPE_PIPE;
         }
@@ -80,6 +102,12 @@ GameState hostileReducer(GameState lastState){
             newPipe.gap[1] = newPipe.gap[0] - PIPE_GAP;
             newPipe.hWidth = PIPE_WIDTH;
             newHostile.pipe = newPipe;
+        } else {
+            Enemy newEnemy;
+            newEnemy.height = (rand() % (MAX_HEIGHT - PIPE_GAP - 2 * PIPE_MARGIN)) + (PIPE_GAP + PIPE_MARGIN);
+            newEnemy.hWidth = PIPE_WIDTH;
+            newEnemy.velocity = 0;
+            newHostile.enemy = newEnemy;
         }
 
         // pull all old hostiles to the front
@@ -110,11 +138,31 @@ GameState projectileReducer(GameState lastState, Action action){
             }
             for(j = 0; j < MAX_HOSTILES; j++){
                 if(lastState.hostile[j].active){
-                    // is projectile in pipes region?
-                    if(lastState.projectile[i].height >= lastState.hostile[j].pipe.gap[0] || lastState.projectile[i].height <= lastState.hostile[j].pipe.gap[1]){
-                        if((lastState.projectile[i].hPosition >= lastState.hostile[j].hPosition) && (lastState.projectile[i].hPosition <= (lastState.hostile[j].hPosition + lastState.hostile[j].pipe.hWidth))){
-                            // projectile collided with a pipe
-                            lastState.projectile[i].active = 0;
+                    if(lastState.hostile[j].type == TYPE_PIPE){
+                        // is projectile in pipes region?
+                        if(lastState.projectile[i].height >= lastState.hostile[j].pipe.gap[0] || lastState.projectile[i].height <= lastState.hostile[j].pipe.gap[1]){
+                            if((lastState.projectile[i].hPosition >= lastState.hostile[j].hPosition) && (lastState.projectile[i].hPosition <= (lastState.hostile[j].hPosition + lastState.hostile[j].pipe.hWidth))){
+                                // projectile collided with a pipe
+                                lastState.projectile[i].active = 0;
+                            }
+                        }
+                    } else {
+                        // projectile is in enemies region?
+                        if(lastState.projectile[i].height <= lastState.hostile[j].enemy.height && lastState.projectile[i].height >= (lastState.hostile[j].enemy.height - ENEMY_HEIGHT)){
+                            if((lastState.projectile[i].hPosition >= lastState.hostile[j].hPosition) && (lastState.projectile[i].hPosition <= (lastState.hostile[j].hPosition + lastState.hostile[j].enemy.hWidth))){
+                                if(j != 0){
+                                    Hostile copy = lastState.hostile[j];
+                                    int k;
+                                    // pushes every hostile in the array back
+                                    for(k = j; k > 0; k--){
+                                        lastState.hostile[j] = lastState.hostile[j-1];
+                                    }
+                                    lastState.hostile[0] = copy;
+                                }
+                                lastState.hostile[0].active = 0;
+                                lastState.points += 1;
+                                lastState.projectile[i].active = 0;
+                            }
                         }
                     }
                 }
