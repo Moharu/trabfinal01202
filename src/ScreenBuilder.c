@@ -22,43 +22,55 @@ Screen buildScreenFromState(GameState state) {
         }
     }
     // drawing the pipes
-    for(i = 0; i < MAX_PIPES; i++){
-        // position pipe
-        if(state.pipe[i].active){
-            float widthRatio = SCREEN_WIDTH / MAX_WIDTH;
-            int startRelativePosition = round((state.pipe[i].hPosition - state.physics.hPosition + PIPE_WIDTH) * widthRatio);
-            int endRelativePosition = round((startRelativePosition + state.pipe[i].hWidth) * widthRatio);
-            if(startRelativePosition >= - PIPE_WIDTH && startRelativePosition < 60){
-                // Draw the upper pipe
-                for(j = SCREEN_HEIGHT - 1; j >= state.pipe[i].gap[0]; j--){
-                    if(startRelativePosition > 0){
-                        screen.content[j][startRelativePosition] = '|';
+    for(i = 0; i < MAX_HOSTILES; i++){
+        if(state.hostile[i].active){
+            if(state.hostile[i].type == TYPE_PIPE){
+                float widthRatio = SCREEN_WIDTH / MAX_WIDTH;
+                int startRelativePosition = round((state.hostile[i].hPosition - state.physics.hPosition + PIPE_WIDTH) * widthRatio);
+                int endRelativePosition = round((startRelativePosition + state.hostile[i].pipe.hWidth) * widthRatio);
+                if(startRelativePosition >= - PIPE_WIDTH && startRelativePosition < 60){
+                    // Draw the upper pipe
+                    for(j = SCREEN_HEIGHT - 1; j >= state.hostile[i].pipe.gap[0]; j--){
+                        if(startRelativePosition > 0){
+                            screen.content[j][startRelativePosition] = '|';
+                        }
+                        if(endRelativePosition < SCREEN_WIDTH){
+                            screen.content[j][endRelativePosition] = '|';
+                        }
                     }
-                    if(endRelativePosition < SCREEN_WIDTH){
-                        screen.content[j][endRelativePosition] = '|';
+                    // Draw the lower pipe
+                    for(j = state.hostile[i].pipe.gap[1] - 1; j >= 0; j--){
+                        if(startRelativePosition > 0){
+                            screen.content[j][startRelativePosition] = '|';
+                        }
+                        if(endRelativePosition < SCREEN_WIDTH){
+                            screen.content[j][endRelativePosition] = '|';
+                        }
                     }
-                }
-                // Draw the lower pipe
-                for(j = state.pipe[i].gap[1] - 1; j >= 0; j--){
-                    if(startRelativePosition > 0){
-                        screen.content[j][startRelativePosition] = '|';
+                    // Draw the pipes' ends
+                    if(startRelativePosition < 0){
+                        startRelativePosition = -1;
                     }
-                    if(endRelativePosition < SCREEN_WIDTH){
-                        screen.content[j][endRelativePosition] = '|';
+                    if(endRelativePosition >= SCREEN_WIDTH){
+                        endRelativePosition = SCREEN_HEIGHT;
                     }
-                }
-                // Draw the pipes' ends
-                if(startRelativePosition < 0){
-                    startRelativePosition = -1;
-                }
-                if(endRelativePosition >= SCREEN_WIDTH){
-                    endRelativePosition = SCREEN_HEIGHT;
-                }
-                for(j = startRelativePosition + 1; j < endRelativePosition; j++){
-                    screen.content[(int)state.pipe[i].gap[0]][j] = '_';
-                    screen.content[(int)state.pipe[i].gap[1]][j] = '_';
+                    for(j = startRelativePosition + 1; j < endRelativePosition; j++){
+                        screen.content[(int)state.hostile[i].pipe.gap[0]][j] = '_';
+                        screen.content[(int)state.hostile[i].pipe.gap[1]][j] = '_';
+                    }
                 }
             }
+        }
+    }
+
+    // Drawing projectiles
+    for(i = 0; i < MAX_PROJECTILES; i++){
+        // position pipe
+        if(state.projectile[i].active){
+            float widthRatio = SCREEN_WIDTH / MAX_WIDTH;
+            int Ypos = round((state.projectile[i].height/state.physics.maxHeight)*(SCREEN_HEIGHT-1));
+            int Xpos = round((state.projectile[i].hPosition - state.physics.hPosition) * widthRatio);
+            screen.content[Ypos][Xpos] = '-';
         }
     }
 

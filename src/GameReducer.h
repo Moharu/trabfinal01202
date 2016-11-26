@@ -16,12 +16,22 @@ typedef struct physics {
     float hPosition; // Horizontal position
 } Physics;
 
+// Projectile (expert mode only)
+typedef struct projectile {
+    int active;
+    float hPosition;
+    float hVelocity;
+    float height;
+} Projectile;
+
 // Game State structure
 typedef struct gamestate {
     int points;
 	int gameEnded;
+    int spawnEnemies;
     Physics physics;
-    Pipe pipe[MAX_PIPES]; // Description of all current pipes
+    Hostile hostile[MAX_HOSTILES]; // Description of all current hostile units
+    Projectile projectile[MAX_PROJECTILES]; // Description of current projectiles
 } GameState;
 
 GameState gameReducer(GameState, Action);

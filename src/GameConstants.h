@@ -11,8 +11,12 @@
 #define PIPE_MARGIN 3
 #define PIPE_WIDTH	5
 #define PIPE_GAP 4
-#define MAX_PIPES 6 // minimum 3
-#define SPACE_BETWEEN_PIPES 25
+#define MAX_HOSTILES 10
+#define SPACE_BETWEEN_HOSTILES 25
+#define MAX_PROJECTILES 5
+#define PROJECTILE_SPEED 35
+#define ENEMY_WIDTH 5
+#define ENEMY_HEIGHT 5
 
 // UI
 #define SCORE_OFFSET 3
